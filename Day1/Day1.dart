@@ -1,9 +1,8 @@
 import 'dart:io';
-import 'dart:math';
 
-int puzzle1(List<String> lines) {
+List<int> run(List<String> lines) {
+  List<int> topThreeElves = [0, 0, 0];
   int currentCalories = 0;
-  int highestCalories = -1;
 
   // Append empty line so that the last group of calories gets evaluated properly
   lines.add("");
@@ -13,7 +12,12 @@ int puzzle1(List<String> lines) {
 
     // If the line is empty, a new group of calories begins
     if (line.length == 0) {
-      highestCalories = max(highestCalories, currentCalories);
+      if (currentCalories > topThreeElves[0]) {
+        topThreeElves.add(currentCalories);
+        topThreeElves.sort();
+        topThreeElves.removeAt(0);
+      }
+
       currentCalories = 0;
       continue;
     }
@@ -23,12 +27,15 @@ int puzzle1(List<String> lines) {
     currentCalories += calories;
   }
 
-  return highestCalories;
+  return topThreeElves;
 }
 
 void main() {
   File file = File("input.txt");
   List<String> content = file.readAsLinesSync();
 
-  print(puzzle1(content));
+  List<int> topThreeElves = run(content);
+  int sum = topThreeElves.fold(0, (previous, next) => previous + next);
+  print("Puzzle 1: ${topThreeElves[2]}");
+  print("Puzzle 2: $sum");
 }
