@@ -1,4 +1,3 @@
-import 'dart:collection';
 import "dart:io";
 
 int run(List<String> lines, bool onlyCountWholeOverlapps) {
@@ -9,17 +8,19 @@ int run(List<String> lines, bool onlyCountWholeOverlapps) {
         .map((element) => int.parse(element))
         .toList();
 
-    // Convert the ranges into HashSets and then compute the union to get the common elements
-    HashSet<int> firstElve =
-        HashSet.from([for (int i = elves[0]; i <= elves[1]; i++) i]);
-    HashSet<int> secondElve =
-        HashSet.from([for (int i = elves[2]; i <= elves[3]; i++) i]);
-    HashSet<int> overlap = firstElve.intersection(secondElve) as HashSet<int>;
+    // Note: This is maybe not the most readable approach, but it should be the fastest and still easy enough to understand
 
-    // Check if the length of the union matches one of the ranges
-    bool overlapsWholly = overlap.length == firstElve.length ||
-        overlap.length == secondElve.length;
-    if (overlapsWholly || (!onlyCountWholeOverlapps && overlap.length > 0)) {
+    // Check if one range fully contains the other
+    bool fullyContains = (elves[0] >= elves[2] && elves[1] <= elves[3] ||
+        elves[2] >= elves[0] && elves[3] <= elves[1]);
+
+    // Check if there is any overlapping between the ranges
+    bool contains = (elves[0] >= elves[2] && elves[0] <= elves[3] ||
+        elves[1] >= elves[2] && elves[1] <= elves[3] ||
+        elves[2] >= elves[0] && elves[2] <= elves[1] ||
+        elves[3] >= elves[0] && elves[3] <= elves[1]);
+
+    if (fullyContains || (!onlyCountWholeOverlapps && contains)) {
       overlappingCount++;
     }
   }
