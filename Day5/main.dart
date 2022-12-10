@@ -1,13 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
-String puzzle1(List<String> lines) {
-  // Index of line in input which divides the stacks and move instructions
-  int sectionDivider = 0;
-  while (lines[sectionDivider].length != 0) {
-    sectionDivider++;
-  }
-
+List<List<String>> parseInput(List<String> lines, int sectionDivider) {
   List<List<String>> stacks = [];
   for (int i = 0; i < sectionDivider; i++) {
     stacks.add([]);
@@ -24,20 +18,26 @@ String puzzle1(List<String> lines) {
     }
   }
 
-  // Move item around
-  for (int i = sectionDivider + 1; i < lines.length; i++) {
-    List<String> parts = lines[i].split(" ");
-    int amount = int.parse(parts[1]);
-    int source = int.parse(parts[3]) - 1;
-    int destination = int.parse(parts[5]) - 1;
+  return stacks;
+}
 
-    // The top most item of the source stack gets moved to the destination stack.
-    int actualAmount = min(amount, stacks[source].length);
-    for (int j = actualAmount - 1; j >= 0; j--) {
-      stacks[destination].add(stacks[source].removeLast());
-    }
+void moveSingle(int amount, List<String> source, List<String> destination) {
+  // The top most item of the source stack gets moved to the destination stack.
+  int actualAmount = min(amount, source.length);
+  for (int j = actualAmount - 1; j >= 0; j--) {
+    destination.add(source.removeLast());
   }
+}
 
+void moveBlock(int amount, List<String> source, List<String> destination) {
+  int actualAmount = min(amount, source.length);
+  for (int i = source.length - actualAmount; i < source.length; i++) {
+    destination.add(source.elementAt(i));
+  }
+  source.removeRange(source.length - actualAmount, source.length);
+}
+
+String getAnswer(List<List<String>> stacks) {
   StringBuffer buffer = new StringBuffer();
   for (int i = 0; i < 9; i++) {
     buffer.write(stacks[i].last);
@@ -46,8 +46,31 @@ String puzzle1(List<String> lines) {
   return buffer.toString();
 }
 
+String run(List<String> lines,
+    Function(int, List<String>, List<String>) moveFunction) {
+  // Index of line in input which divides the stacks and move instructions
+  int sectionDivider = 0;
+  while (lines[sectionDivider].length != 0) {
+    sectionDivider++;
+  }
+
+  var stacks = parseInput(lines, sectionDivider);
+
+  // Move item around
+  for (int i = sectionDivider + 1; i < lines.length; i++) {
+    List<String> parts = lines[i].split(" ");
+    int amount = int.parse(parts[1]);
+    int source = int.parse(parts[3]) - 1;
+    int destination = int.parse(parts[5]) - 1;
+    moveFunction(amount, stacks[source], stacks[destination]);
+  }
+
+  return getAnswer(stacks);
+}
+
 void main() {
   File file = File("input.txt");
   List<String> lines = file.readAsLinesSync();
-  print("Puzzle 1: ${puzzle1(lines)}");
+  print("Puzzle 1: ${run(lines, moveSingle)}");
+  print("Puzzle 2: ${run(lines, moveBlock)}");
 }
